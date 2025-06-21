@@ -1,0 +1,35 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.3'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example.observability'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	runtimeOnly 'co.elastic.apm:elastic-apm-agent:1.54.0'
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+	implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+	implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

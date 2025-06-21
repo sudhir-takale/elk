@@ -1,0 +1,41 @@
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["http://3.109.139.197:9200"]
+    username: "elastic"  # Add if you have security enabled
+    password: "yourpassword"  # Add if you have security enabled
+
+agent:
+  monitoring:
+    enabled: false
+
+inputs:
+  - type: container
+    streams:
+      - paths:
+          - "/var/lib/docker/containers/*/*.log"
+          - "/proc/1/fd/1"
+          - "/proc/1/fd/2"
+        data_stream:
+          type: logs
+          dataset: spring.logs
+        processors:
+          - add_fields:
+              fields:
+                log.source: spring-app
+
+  - type: system/metrics
+    streams:
+      - metricsets: ["cpu", "memory", "network"]
+        data_stream:
+          type: metrics
+          dataset: system.metrics
+
+  - type: http
+    schedule: "@every 10s"
+    urls: ["http://localhost:8080/actuator/health"]
+    check.request.method: "GET"
+    check.response.status: 200
+    data_stream:
+      type: synthetics
+      dataset: http.up
