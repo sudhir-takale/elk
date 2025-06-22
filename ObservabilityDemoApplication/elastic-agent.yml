@@ -2,40 +2,46 @@ outputs:
   default:
     type: elasticsearch
     hosts: ["http://3.109.139.197:9200"]
-    username: "elastic"  # Add if you have security enabled
-    password: "yourpassword"  # Add if you have security enabled
+    username: "elastic"
+    password: "shaurya"
+    ssl.verification_mode: none  # Use only if you don't use TLS or have self-signed certs
 
 agent:
   monitoring:
-    enabled: false
+    enabled: true
 
 inputs:
-  - type: container
-    streams:
-      - paths:
-          - "/var/lib/docker/containers/*/*.log"
-          - "/proc/1/fd/1"
-          - "/proc/1/fd/2"
-        data_stream:
-          type: logs
-          dataset: spring.logs
-        processors:
-          - add_fields:
-              fields:
-                log.source: spring-app
+  - type: filestream
+    id: spring-logfile
+    paths:
+      - /logs/app.log
+    parsers:
+      - ndjson:
+          target: ""
+          overwrite_keys: true
+    processors:
+      - add_fields:
+          target: ""
+          fields:
+            component: "spring-app"
+            environment: "prod"
 
   - type: system/metrics
+    data_stream:
+      namespace: default
     streams:
-      - metricsets: ["cpu", "memory", "network"]
-        data_stream:
-          type: metrics
-          dataset: system.metrics
+      - metricsets: ["cpu", "memory", "network", "process"]
+        period: 10s
 
   - type: http
-    schedule: "@every 10s"
+    id: app-health
+    schedule: "@every 15s"
     urls: ["http://localhost:8080/actuator/health"]
-    check.request.method: "GET"
-    check.response.status: 200
+    check.response:
+      status: 200
+      json:
+        - path: status
+          equals: "UP"
     data_stream:
       type: synthetics
       dataset: http.up
