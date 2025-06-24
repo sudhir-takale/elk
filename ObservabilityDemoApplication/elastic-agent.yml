@@ -2,19 +2,26 @@ outputs:
   default:
     type: elasticsearch
     hosts: ["http://3.109.139.197:9200"]
-    username: "elastic"
-    password: "shaurya"
-    ssl.verification_mode: none  # Use only if you don't use TLS or have self-signed certs
+    ssl.verification_mode: none
+
 
 agent:
   monitoring:
     enabled: true
+    logs: true
+    metrics: true
+  logging:
+    level: debug
+    to_stderr: true
+    to_files: true
+    files:
+      path: /var/log/elastic-agent
 
 inputs:
   - type: filestream
     id: spring-logfile
     paths:
-      - /logs/app.log
+      - /app/logs/*
     parsers:
       - ndjson:
           target: ""
@@ -25,13 +32,22 @@ inputs:
           fields:
             component: "spring-app"
             environment: "prod"
+            data_stream.dataset: "spring.logs"
+            data_stream.namespace: "production"
+            data_stream.type: "logs"
 
   - type: system/metrics
     data_stream:
-      namespace: default
+      namespace: production
     streams:
-      - metricsets: ["cpu", "memory", "network", "process"]
+      - metricsets: ["cpu", "memory", "network", "process", "filesystem", "diskio"]
         period: 10s
+    processors:
+      - add_fields:
+          fields:
+            component: "spring-app"
+            environment: "prod"
+
 
   - type: http
     id: app-health
@@ -45,3 +61,15 @@ inputs:
     data_stream:
       type: synthetics
       dataset: http.up
+    processors:
+      - add_fields:
+          fields:
+            component: "spring-app"
+            environment: "prod"
+
+  - type: apm
+    server_url: "http://3.109.139.197:8200"
+    data_stream:
+      namespace: production
+
+  - type: container
