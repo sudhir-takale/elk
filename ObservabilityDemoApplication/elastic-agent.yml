@@ -1,9 +1,8 @@
 outputs:
   default:
     type: elasticsearch
-    hosts: ["http://3.109.139.197:9200"]
+    hosts: ["http:3.109.12:9200"]
     ssl.verification_mode: none
-
 
 agent:
   monitoring:
@@ -11,65 +10,50 @@ agent:
     logs: true
     metrics: true
   logging:
-    level: debug
-    to_stderr: true
+    level: info
     to_files: true
     files:
       path: /var/log/elastic-agent
 
 inputs:
   - type: filestream
-    id: spring-logfile
+    id: spring-app-logs
+    data_stream:
+      dataset: spring.logs
+      namespace: production
     paths:
-      - /app/logs/*
-    parsers:
-      - ndjson:
-          target: ""
-          overwrite_keys: true
-    processors:
-      - add_fields:
-          target: ""
-          fields:
-            component: "spring-app"
-            environment: "prod"
-            data_stream.dataset: "spring.logs"
-            data_stream.namespace: "production"
-            data_stream.type: "logs"
+      - "/app/logs/app.log"
+      - "/logs/app.log"
+      - "/dev/stdout"
+
+  - type: filestream
+    id: container-logs
+    data_stream:
+      dataset: container.logs
+      namespace: production
+    paths:
+      - "/proc/1/fd/1"
+      - "/proc/1/fd/2"
 
   - type: system/metrics
+    id: system-metrics
     data_stream:
       namespace: production
     streams:
-      - metricsets: ["cpu", "memory", "network", "process", "filesystem", "diskio"]
+      - metricsets: ["cpu"]
+        data_stream.dataset: system.cpu
         period: 10s
-    processors:
-      - add_fields:
-          fields:
-            component: "spring-app"
-            environment: "prod"
-
-
-  - type: http
-    id: app-health
-    schedule: "@every 15s"
-    urls: ["http://localhost:8080/actuator/health"]
-    check.response:
-      status: 200
-      json:
-        - path: status
-          equals: "UP"
-    data_stream:
-      type: synthetics
-      dataset: http.up
-    processors:
-      - add_fields:
-          fields:
-            component: "spring-app"
-            environment: "prod"
+      - metricsets: ["memory"]
+        data_stream.dataset: system.memory
+        period: 10s
+      - metricsets: ["network"]
+        data_stream.dataset: system.network
+        period: 10s
+      - metricsets: ["filesystem"]
+        data_stream.dataset: system.filesystem
+        period: 30s
 
   - type: apm
-    server_url: "http://3.109.139.197:8200"
+    server_url: "http://<APM serverIp URI>:8200"
     data_stream:
       namespace: production
-
-  - type: container
