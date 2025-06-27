@@ -1,59 +1,38 @@
 outputs:
   default:
     type: elasticsearch
-    hosts: ["http:3.109.12:9200"]
-    ssl.verification_mode: none
-
-agent:
-  monitoring:
-    enabled: true
-    logs: true
-    metrics: true
-  logging:
-    level: info
-    to_files: true
-    files:
-      path: /var/log/elastic-agent
+    hosts: ["http://65.0.76.204:9200"]
+    username: "elastic"
+    password: "DIgea+J4ogc1ycA*Whtu"
 
 inputs:
   - type: filestream
-    id: spring-app-logs
+    id: springboot-logs
     data_stream:
-      dataset: spring.logs
-      namespace: production
-    paths:
-      - "/app/logs/app.log"
-      - "/logs/app.log"
-      - "/dev/stdout"
-
-  - type: filestream
-    id: container-logs
-    data_stream:
-      dataset: container.logs
-      namespace: production
-    paths:
-      - "/proc/1/fd/1"
-      - "/proc/1/fd/2"
-
-  - type: system/metrics
-    id: system-metrics
-    data_stream:
-      namespace: production
+      dataset: springboot.logs
+      type: logs
     streams:
-      - metricsets: ["cpu"]
-        data_stream.dataset: system.cpu
-        period: 10s
-      - metricsets: ["memory"]
-        data_stream.dataset: system.memory
-        period: 10s
-      - metricsets: ["network"]
-        data_stream.dataset: system.network
-        period: 10s
-      - metricsets: ["filesystem"]
-        data_stream.dataset: system.filesystem
-        period: 30s
+      - paths:
+          - /app/logs/app.log
+          - /app/logs/*.log
+          - /dev/stdout
+          - /logs/*.log
+          - /var/lib/docker/containers/${docker.container.id}/*-json.log
+          - /proc/1/fd/1
+        parsers:
+          - ndjson:
+              keys_under_root: true
+              overwrite_keys: true
+        fields:
+          service.name: sudhir-app
+        multiline:
+          pattern: '^\{'
+          negate: true
+          match: after
 
-  - type: apm
-    server_url: "http://<APM serverIp URI>:8200"
+  - type: awsfargate/metrics
     data_stream:
-      namespace: production
+      dataset: awsfargate.task_stats
+      type: metrics
+    streams:
+      - period: 10s

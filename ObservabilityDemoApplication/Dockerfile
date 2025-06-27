@@ -1,7 +1,7 @@
 FROM openjdk:17-jdk-slim
 
 RUN apt-get update && \
-    apt-get install -y curl unzip procps && \
+    apt-get install -y curl unzip procps dos2unix && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -21,8 +21,9 @@ RUN mkdir -p /var/log/elastic-agent && \
 
 COPY elastic-agent.yml /elastic-agent.yml
 COPY start.sh /start.sh
-RUN chmod +x /start.sh
+RUN dos2unix /start.sh && \
+    chmod +x /start.sh
 
 EXPOSE 8080
 
-ENTRYPOINT ["/start.sh"]
+ENTRYPOINT ["/bin/bash", "/start.sh"]
