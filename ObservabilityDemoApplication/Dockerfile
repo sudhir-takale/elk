@@ -14,6 +14,8 @@ RUN curl -L -o elastic-agent.tar.gz https://artifacts.elastic.co/downloads/beats
     tar -xzf elastic-agent.tar.gz -C /elastic-agent --strip-components=1 && \
     rm elastic-agent.tar.gz
 
+RUN curl -L -o /elastic-apm-agent.jar https://search.maven.org/remotecontent?filepath=co/elastic/apm/elastic-apm-agent/1.54.0/elastic-apm-agent-1.54.0.jar
+
 RUN mkdir -p /var/log/elastic-agent && \
     mkdir -p /app/logs && \
     chmod -R 755 /var/log/elastic-agent && \
@@ -21,8 +23,7 @@ RUN mkdir -p /var/log/elastic-agent && \
 
 COPY elastic-agent.yml /elastic-agent.yml
 COPY start.sh /start.sh
-RUN dos2unix /start.sh && \
-    chmod +x /start.sh
+RUN dos2unix /start.sh && chmod +x /start.sh
 
 EXPOSE 8080
 
