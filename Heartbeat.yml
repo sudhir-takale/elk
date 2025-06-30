@@ -1,0 +1,28 @@
+## Heartbeat.yml
+heartbeat.monitors:
+  - type: http
+    id: "spring-app-health"
+    name: "Spring Boot Health Check"
+    schedule: "@every 10s"
+    urls: ["http://13.234.225.96:8080/actuator/health"] # ecs container ip
+    check.response.status: 200
+  - type: icmp
+    id: "server-ping"
+ name: "Server Ping Check"
+    schedule: "@every 30s"
+    hosts: ["13.234.225.96"] # your ecs container ip
+    timeout: 5s
+    wait: 1s
+
+  - type: tcp
+    id: "spring-app-port"
+    name: "Spring Boot TCP Port Check"
+    schedule: "@every 30s"
+    hosts: ["13.234.225.96:8080"]
+    timeout: 5s
+
+setup.kibana:
+  host: "http://localhost:5601"
+  username: "elastic"
+  password: "DIgea+J4ogc1ycA*Whtu"
+ssl.verification_mode: none
