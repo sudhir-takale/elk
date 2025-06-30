@@ -1,0 +1,80 @@
+## Elastic-search.yml
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+network.host: 0.0.0.0
+http.port: 9200
+discovery.type: single-node
+xpack.security.enabled: true
+
+## Kibana.yml
+elasticsearch.hosts: ["http://<your elastic search iP>:9200"]
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "IPD_rGor9yofF2dGxzs7"
+
+xpack.fleet.enabled: true
+xpack.fleet.agents.enabled: true
+
+xpack.encryptedSavedObjects.encryptionKey: "Ae4ZlXRLtpKJTLXfWbCLPU+uEVZVvbrGJl0E/PouOCA="
+
+server.port: 5601
+server.host: "0.0.0.0"
+
+logging:
+  appenders:
+    file:
+      type: file
+      fileName: /var/log/kibana/kibana.log
+      layout:
+        type: json
+  root:
+    appenders:
+      - default
+      - file
+
+pid.file: /run/kibana/kibana.pid
+
+
+## Heartbeat.yml
+heartbeat.monitors:
+  - type: http
+    id: "spring-app-health"
+    name: "Spring Boot Health Check"
+    schedule: "@every 10s"
+    urls: ["http://13.234.225.96:8080/actuator/health"] # ecs container ip
+    check.response.status: 200
+  - type: icmp
+    id: "server-ping"
+ name: "Server Ping Check"
+    schedule: "@every 30s"
+    hosts: ["13.234.225.96"] # your ecs container ip
+    timeout: 5s
+    wait: 1s
+
+  - type: tcp
+    id: "spring-app-port"
+    name: "Spring Boot TCP Port Check"
+    schedule: "@every 30s"
+    hosts: ["13.234.225.96:8080"]
+    timeout: 5s
+
+setup.kibana:
+  host: "http://localhost:5601"
+  username: "elastic"
+  password: "DIgea+J4ogc1ycA*Whtu"
+ssl.verification_mode: none
+
+## APM-server.yml
+apm-server:
+  host: "0.0.0.0:8200"
+  rum:
+    enabled: true
+
+output.elasticsearch:
+  hosts: ["http://localhost:9200"] # change with your actual ip of ES
+  username: "elastic"   # change with your elastic search username & pass
+  password: "DIgea+J4ogc1ycA*Whtu"
+
+setup.kibana:
+  host: "http://localhost:5601"
+  username: "elastic"
+  password: "DIgea+J4ogc1ycA*Whtu"
