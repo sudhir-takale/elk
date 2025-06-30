@@ -120,14 +120,19 @@ Once deployed:
 
 ---
 
-## 📸 Screenshots (Optional)
-
-> You can add screenshots of:
-- ECS Task Definition configuration
-- Kibana dashboards showing logs/traces
-- APM and Uptime views
+## 📸 Screenshots
 
 ---
+## In Kibana You can see
+![image](https://github.com/user-attachments/assets/7c929309-501a-43e7-ac46-99f882a5c879)
+
+![image](https://github.com/user-attachments/assets/2716a339-0800-49a8-9e0c-6a16915de68b)
+
+![image](https://github.com/user-attachments/assets/7cb2625d-406c-4fe9-adf7-7d8d0cfa99d1)
+![image](https://github.com/user-attachments/assets/8c821c03-cf28-4823-8754-21857be3c22e)
+![image](https://github.com/user-attachments/assets/dd3719f1-2ba7-4630-a5b4-165606b8243c)
+
+
 
 ## 📎 Useful Links
 
